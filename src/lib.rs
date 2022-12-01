@@ -14,7 +14,11 @@ pub fn get_input(year: usize, day: usize) -> anyhow::Result<String> {
         let key = env::var("AOC_SESSION").expect("No AoC session key found in environment!");
         let url = format!("https://adventofcode.com/{}/day/{}/input", year, day);
 
-        let content = ureq::get(&url).set("Cookie", &key).call()?.into_string()?;
+        let content = ureq::get(&url)
+            .set("Cookie", &key)
+            .set("User-Agent", "github.com/tyler569/aoc_rs by aoc@choam.me")
+            .call()?
+            .into_string()?;
         fs::create_dir_all(cache_file.parent().expect("cache always has a parent"))?;
         fs::write(cache_file, &content)?;
 
