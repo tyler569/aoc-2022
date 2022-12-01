@@ -1,35 +1,54 @@
-use regex::Regex;
 use once_cell::sync::Lazy;
+use regex::Regex;
 
 macro_rules! reparse {
-    ($regex:expr, $string:expr ; ( $($T:ty),* )) => {
+    ( ( $($T:ty),* ), $regex:literal, $string:expr) => {
         {
             static REGEX: Lazy<Regex> = Lazy::new(|| {
-                Regex::new($regex).unwrap()
+                Regex::new($regex)
+                    .expect("Regex did not compile")
             });
 
-            let ca = REGEX.captures($string).unwrap();
+            let ca = REGEX
+                .captures($string)
+                .expect("Regex did not match");
+
             let mut iter = ca.iter();
             iter.next();
 
             (
-                $(iter.next().unwrap().unwrap().as_str().parse::<$T>().unwrap(),)*
+                $(iter
+                    .next()
+                    .expect("Not enough capture groups")
+                    .expect("Nothing captured")
+                    .as_str()
+                    .parse::<$T>()
+                    .expect("Parse failed")
+                ,)*
             )
         }
-    }
+    };
+    ( ( $($T:ty),+ , ), $regex:expr, $string:expr) => {
+        reparse!(($($T),*), $regex, $string)
+    };
 }
 
-#[test]
-fn test_regex_parse() {
-    assert_eq!(reparse!(r"(\d+)", "1"; (i32)), (1i32,));
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    let tests = [
-        ("Santa: 1 -> 2", ("Santa".to_string(), 1, 2)),
-        ("Popeye: 200 -> 4000", ("Popeye".to_string(), 200, 4000)),
-        ("Jonah: 3 -> 12", ("Jonah".to_string(), 3, 12)),
-    ];
+    #[test]
+    fn test_regex_parse() {
+        assert_eq!(reparse!((i32,), r"(\d+)", "1"), (1i32,));
 
-    for (test, result) in tests {
-        assert_eq!(reparse!(r"^(\w+): (\d+) -> (\d+)$", test; (String, i32, i32)), result);
+        let tests = [
+            ("Santa: 1 -> 2", ("Santa".to_string(), 1, 2)),
+            ("Popeye: 200 -> 4000", ("Popeye".to_string(), 200, 4000)),
+            ("Jonah: 3 -> 12", ("Jonah".to_string(), 3, 12)),
+        ];
+
+        for (test, result) in tests {
+            assert_eq!(reparse!((String, i32, i32), r"^(\w+): (\d+) -> (\d+)$", test), result);
+        }
     }
 }
