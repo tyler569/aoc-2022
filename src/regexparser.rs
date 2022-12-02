@@ -1,9 +1,11 @@
-use once_cell::sync::Lazy;
-use regex::Regex;
 
+#[macro_export]
 macro_rules! reparse {
     ( ( $($T:ty),* ), $regex:literal, $string:expr) => {
         {
+            use once_cell::sync::Lazy;
+            use regex::Regex;
+
             static REGEX: Lazy<Regex> = Lazy::new(|| {
                 Regex::new($regex)
                     .expect("Regex did not compile")
@@ -35,8 +37,6 @@ macro_rules! reparse {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     #[test]
     fn test_regex_parse() {
         assert_eq!(reparse!((i32,), r"(\d+)", "1"), (1i32,));

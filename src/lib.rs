@@ -1,7 +1,7 @@
 use std::{fs, path::Path, env};
 
 pub mod parser;
-pub mod regexparser;
+mod regexparser;
 
 pub fn get_input(year: usize, day: usize) -> anyhow::Result<String> {
     let cache_file_name = format!("cache/{}/{}", year, day);
