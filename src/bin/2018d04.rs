@@ -20,7 +20,7 @@ struct LogLine {
 
 fn main() -> anyhow::Result<()> {
     let input = get_input(2018, 4)?;
-    let log = parse(&input)?;
+    let log = parse(&input);
 
     println!("part1: {}", part1(&log));
     println!("part2: {}", part2(&log));
@@ -28,26 +28,26 @@ fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-fn parse(input: &str) -> anyhow::Result<Vec<LogLine>> {
+fn parse(input: &str) -> Vec<LogLine> {
     let lines = input.trim().split('\n').sorted();
     let mut guard = Guard(-1);
     let mut log = Vec::new();
 
     for line in lines {
         let mut parser = Parser::new(line);
-        parser.eat_str("[1518-")?;
-        let _month = parser.i64()?;
-        parser.eat('-')?;
-        let _day = parser.i64()?;
-        parser.eat(' ')?;
-        let _hour = parser.i64()?;
-        parser.eat(':')?;
-        let minute = parser.i64()?;
-        parser.eat(']')?;
+        parser.eat_str("[1518-");
+        let _month = parser.i64();
+        parser.eat('-');
+        let _day = parser.i64();
+        parser.eat(' ');
+        let _hour = parser.i64();
+        parser.eat(':');
+        let minute = parser.i64();
+        parser.eat(']');
 
         if line.contains("Guard") {
-            parser.eat_str(" Guard #")?;
-            guard = Guard(parser.i64()?);
+            parser.eat_str(" Guard #");
+            guard = Guard(parser.i64());
         } else if line.contains("falls") {
             log.push(LogLine { guard, minute, state: SleepWake::Sleep });
         } else if line.contains("wakes") {
@@ -57,7 +57,7 @@ fn parse(input: &str) -> anyhow::Result<Vec<LogLine>> {
         }
     }
 
-    Ok(log)
+    log
 }
 
 fn part1(log: &[LogLine]) -> i64 {
@@ -172,8 +172,8 @@ mod tests {
 [1518-11-05 00:55] wakes up";
 
     #[test]
-    fn test_parsing() -> anyhow::Result<()> {
-        let log = parse(SAMPLE)?;
+    fn test_parsing() {
+        let log = parse(SAMPLE);
 
         assert!(log ==
             [
@@ -191,23 +191,17 @@ mod tests {
                 LogLine { guard: Guard(99), state: SleepWake::Wake, minute: 55 },
             ]
         );
-
-        Ok(())
     }
 
     #[test]
-    fn test_part1() -> anyhow::Result<()> {
-        let log = parse(SAMPLE)?;
+    fn test_part1() {
+        let log = parse(SAMPLE);
         assert_eq!(part1(&log), 240);
-
-        Ok(())
     }
 
     #[test]
-    fn test_part2() -> anyhow::Result<()> {
-        let log = parse(SAMPLE)?;
+    fn test_part2() {
+        let log = parse(SAMPLE);
         assert_eq!(part2(&log), 4455);
-
-        Ok(())
     }
 }

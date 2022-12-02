@@ -1,4 +1,4 @@
-use std::{str::Chars, fmt::Display};
+use std::str::Chars;
 use itertools::Itertools;
 
 #[derive(Debug)]
@@ -6,23 +6,6 @@ pub struct Parser {
     state: String,
     at: usize,
 }
-
-#[derive(Debug)]
-pub enum ParserError {
-    InvalidEat(char, Option<char>),
-    CouldNotParseInteger,
-}
-
-impl Display for ParserError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match *self {
-            Self::InvalidEat(a, b) => f.debug_tuple("ParserError").field(&a).field(&b).finish(),
-            Self::CouldNotParseInteger => f.debug_tuple("CouldNotParseInteger").finish(),
-        }
-    }
-}
-
-impl std::error::Error for ParserError {}
 
 impl Parser {
     fn str_view(&self) -> &str {
@@ -47,26 +30,23 @@ impl Parser {
         }
     }
 
-    pub fn eat(&mut self, c: char) -> Result<(), ParserError> {
+    pub fn eat(&mut self, c: char) {
         let mut chars = self.chars();
         let next = chars.next();
         if next == Some(c) {
             self.at += 1;
-            Ok(())
         } else {
-            Err(ParserError::InvalidEat(c, next))
+            panic!("Tried to eat {} but found {:?}", c, next);
         }
     }
 
-    pub fn eat_str(&mut self, s: &str) -> Result<(), ParserError> {
+    pub fn eat_str(&mut self, s: &str) {
         for c in s.chars() {
-            self.eat(c)?;
+            self.eat(c);
         }
-
-        Ok(())
     }
 
-    pub fn u64_base(&mut self, base: u32) -> Result<u64, ParserError> {
+    pub fn u64_base(&mut self, base: u32) -> u64 {
         let mut chars = self.chars();
 
         let number = chars
@@ -79,36 +59,35 @@ impl Parser {
         self.at = taken;
 
         if taken > 0 {
-            Ok(number)
+            number
         } else {
-            Err(ParserError::CouldNotParseInteger)
+            panic!("Could not parse u64 from {}", self.str_view());
         }
     }
 
-    pub fn u64(&mut self) -> Result<u64, ParserError> {
+    pub fn u64(&mut self) -> u64 {
         self.u64_base(10)
     }
 
-    pub fn i64_base(&mut self, base: u32) -> anyhow::Result<i64> {
+    pub fn i64_base(&mut self, base: u32) -> i64{
         let negate = self.try_eat('-');
-        let unsigned: i64 = self.u64_base(base)?.try_into()?;
+        let unsigned: i64 = self.u64_base(base).try_into().expect("parsed signed outside the range of i64");
         if negate {
-            Ok(-unsigned)
+            -unsigned
         } else {
-            Ok(unsigned)
+            unsigned
         }
     }
 
-    pub fn i64(&mut self) -> anyhow::Result<i64> {
+    pub fn i64(&mut self) -> i64 {
         self.i64_base(10)
     }
 
-    pub fn str_until(&mut self, delim: char) -> Result<String, ParserError> {
+    pub fn str_until(&mut self, delim: char) -> String {
         let mut chars = self.chars();
         let out = chars.take_while_ref(|&v| v != delim).collect();
         self.at = self.state.len() - chars.as_str().len();
-
-        Ok(out)
+        out
     }
 
     pub fn done(&self) -> bool {
@@ -124,18 +103,18 @@ mod tests {
     fn test_eating_character() {
         let string = "1234";
         let mut parser = Parser::new(string);
-        assert!(parser.eat('1').is_ok());
-        assert!(parser.eat('2').is_ok());
-        assert!(parser.eat('3').is_ok());
-        assert!(parser.eat('4').is_ok());
+        parser.eat('1');
+        parser.eat('2');
+        parser.eat('3');
+        parser.eat('4');
     }
 
     #[test]
     fn test_eating_string() {
         let string = "1234";
         let mut parser = Parser::new(string);
-        assert!(parser.eat_str("123").is_ok());
-        assert!(parser.eat('4').is_ok());
+        parser.eat_str("123");
+        parser.eat('4');
     }
 
     #[test]
@@ -143,10 +122,10 @@ mod tests {
     fn test_eating_wrong_character() {
         let string = "1235";
         let mut parser = Parser::new(string);
-        assert!(parser.eat('1').is_ok());
-        assert!(parser.eat('2').is_ok());
-        assert!(parser.eat('3').is_ok());
-        assert!(parser.eat('4').is_ok());
+        parser.eat('1');
+        parser.eat('2');
+        parser.eat('3');
+        parser.eat('4');
     }
 
     #[test]
@@ -154,64 +133,60 @@ mod tests {
     fn test_eating_too_much() {
         let string = "1234";
         let mut parser = Parser::new(string);
-        assert!(parser.eat('1').is_ok());
-        assert!(parser.eat('2').is_ok());
-        assert!(parser.eat('3').is_ok());
-        assert!(parser.eat('4').is_ok());
-        assert!(parser.eat('5').is_ok());
+        parser.eat('1');
+        parser.eat('2');
+        parser.eat('3');
+        parser.eat('4');
+        parser.eat('5');
     }
 
     #[test]
     fn test_parsing_number() {
         let string = "1234";
         let mut parser = Parser::new(string);
-        assert_eq!(parser.u64().unwrap(), 1234);
+        assert_eq!(parser.u64(), 1234);
         assert!(parser.done());
     }
 
     #[test]
-    fn test_parsing_format() -> anyhow::Result<()> {
+    fn test_parsing_format() {
         let string = "10x10";
         let mut parser = Parser::new(string);
-        let v1 = parser.u64()?;
-        parser.eat('x')?;
-        let v2 = parser.u64()?;
+        let v1 = parser.u64();
+        parser.eat('x');
+        let v2 = parser.u64();
         
         assert_eq!((v1, v2), (10, 10));
-        Ok(())
     }
 
     #[test]
-    fn test_str_until() -> anyhow::Result<()> {
+    fn test_str_until() {
         let string = "Hello World";
         let mut parser = Parser::new(string);
-        assert_eq!(parser.str_until(' ')?, "Hello");
-        parser.eat(' ')?;
-        assert_eq!(parser.str_until(' ')?, "World");
-        Ok(())
+        assert_eq!(parser.str_until(' '), "Hello");
+        parser.eat(' ');
+        assert_eq!(parser.str_until(' '), "World");
     }
 
     #[test]
-    fn test_signed_integers() -> anyhow::Result<()> {
+    fn test_signed_integers() {
         let string = "[1 -2 4 -5 10 -100 1000]";
         let mut parser = Parser::new(string);
         let expected = vec![1, -2, 4, -5, 10, -100, 1000];
         let mut found = vec![];
 
-        parser.eat('[')?;
+        parser.eat('[');
         while !parser.try_eat(']') {
-            found.push(parser.i64()?);
+            found.push(parser.i64());
             parser.try_eat(' ');
         }
 
         assert_eq!(expected, found);
-
-        Ok(())
     }
 
     #[test]
     // #[ignore]
-    fn test_unknown_length() -> anyhow::Result<()> {
+    fn test_unknown_length() {
         let strings = [
             "a b",
             "a b c d",
@@ -221,11 +196,9 @@ mod tests {
         for string in strings {
             let mut parser = Parser::new(string);
             while !parser.done() {
-                parser.str_until(' ')?;
+                parser.str_until(' ');
                 parser.try_eat(' ');
             }
         }
-
-        Ok(())
     }
 }

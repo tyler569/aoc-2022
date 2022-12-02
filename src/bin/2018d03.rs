@@ -37,32 +37,32 @@ impl FromStr for Claim {
 
     fn from_str(str: &str) -> Result<Self, Self::Err> {
         let mut parser = Parser::new(str);
-        parser.eat('#')?;
-        let number = parser.u64()?;
-        parser.eat_str(" @ ")?;
-        let ox = parser.u64()?;
-        parser.eat(',')?;
-        let oy = parser.u64()?;
-        parser.eat_str(": ")?;
-        let sx = parser.u64()?;
-        parser.eat('x')?;
-        let sy = parser.u64()?;
+        parser.eat('#');
+        let number = parser.u64();
+        parser.eat_str(" @ ");
+        let ox = parser.u64();
+        parser.eat(',');
+        let oy = parser.u64();
+        parser.eat_str(": ");
+        let sx = parser.u64();
+        parser.eat('x');
+        let sy = parser.u64();
 
         Ok(Self { number, point: (ox, oy), size: (sx, sy) })
     }
 }
 
-fn parse(input: &str) -> anyhow::Result<Vec<Claim>> {
+fn parse(input: &str) -> Vec<Claim> {
     input
         .trim()
         .split('\n')
-        .map(|i| i.parse())
+        .map(|i| i.parse().unwrap())
         .collect()
 }
 
 fn main() -> anyhow::Result<()> {
     let input = get_input(2018, 3)?;
-    let claims = parse(&input)?;
+    let claims = parse(&input);
 
     println!("part1: {}", part1(&claims));
     println!("part2: {}", part2(&claims).expect("No solution found!"));
@@ -115,18 +115,14 @@ mod tests {
 ";
 
     #[test]
-    fn test_part1() -> anyhow::Result<()> {
-        let claims = parse(SAMPLE)?;
+    fn test_part1() {
+        let claims = parse(SAMPLE);
         assert_eq!(part1(&claims), 4);
-
-        Ok(())
     }
 
     #[test]
-    fn test_part2() -> anyhow::Result<()> {
-        let claims = parse(SAMPLE)?;
+    fn test_part2() {
+        let claims = parse(SAMPLE);
         assert_eq!(part2(&claims), Some(3));
-
-        Ok(())
     }
 }

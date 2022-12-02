@@ -6,10 +6,10 @@ fn main() -> anyhow::Result<()> {
     let input = get_input(2022, 2)?;
 
     let strategy1 = parse1(&input);
-    println!("part1: {}", part1(&strategy1)?);
+    println!("part1: {}", part1(&strategy1));
 
     let strategy2 = parse2(&input);
-    println!("part2: {}", part2(&strategy2)?);
+    println!("part2: {}", part2(&strategy2));
 
     Ok(())
 }
@@ -111,8 +111,8 @@ fn value1(&(other, my): &(Play, Play)) -> i64 {
     my.value() + my.beats(other).value()
 }
 
-fn part1(strategy: &[(Play, Play)]) -> anyhow::Result<i64> {
-    Ok(strategy.iter().map(value1).sum())
+fn part1(strategy: &[(Play, Play)]) -> i64 {
+    strategy.iter().map(value1).sum()
 }
 
 fn parse2(input: &str) -> Vec<(Play, GameResult)> {
@@ -129,8 +129,8 @@ fn value2(&(other, result): &(Play, GameResult)) -> i64 {
     my.value() + my.beats(other).value()
 }
 
-fn part2(strategy: &[(Play, GameResult)]) -> anyhow::Result<i64> {
-    Ok(strategy.iter().map(value2).sum())
+fn part2(strategy: &[(Play, GameResult)]) -> i64 {
+    strategy.iter().map(value2).sum()
 }
 
 #[cfg(test)]
@@ -144,18 +144,14 @@ C Z
 ";
 
     #[test]
-    fn test_part1() -> anyhow::Result<()> {
+    fn test_part1() {
         let strategy = parse1(SAMPLE);
-        assert_eq!(part1(&strategy)?, 15);
-
-        Ok(())
+        assert_eq!(part1(&strategy), 15);
     }
 
     #[test]
-    fn test_part2() -> anyhow::Result<()> {
+    fn test_part2() {
         let strategy = parse2(SAMPLE);
-        assert_eq!(part2(&strategy)?, 12);
-
-        Ok(())
+        assert_eq!(part2(&strategy), 12);
     }
 }
