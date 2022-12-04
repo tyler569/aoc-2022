@@ -16,7 +16,7 @@ pub fn get_input(year: usize, day: usize) -> anyhow::Result<String> {
 
         let content = ureq::get(&url)
             .set("Cookie", &key)
-            .set("User-Agent", "github.com/tyler569/aoc_rs by aoc@choam.me")
+            .set("User-Agent", "github.com/tyler569/aoc-rs by aoc@choam.me")
             .call()?
             .into_string()?;
         fs::create_dir_all(cache_file.parent().expect("cache always has a parent"))?;
