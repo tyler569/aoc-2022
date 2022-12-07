@@ -1,4 +1,5 @@
 use aoc_rs::get_input;
+use itertools::Itertools;
 use std::collections::HashMap;
 
 fn main() -> anyhow::Result<()> {
@@ -65,27 +66,15 @@ fn parse_inner<'a>(input: &mut Vec<&str>) -> DirectoryEntry {
     while !input.is_empty() {
         let line = input.remove(0);
 
-        if line == "$ cd .." {
-            break;
-        }
-
-        if line == "$ ls" || line == "$ cd /" {
-            continue;
-        }
-
-        if line.starts_with('$') {
-            let (_, name) = line.rsplit_once(' ').unwrap();
-            // eprintln!("entering dir: {name}");
-
-            tree.insert(name.to_string(), parse_inner(input));
-        } else {
-            let (size, name) = line.split_once(" ").unwrap();
-            if size == "dir" {
-                // eprintln!("got a dir: {size} {name}");
-            } else {
-                // eprintln!("got a file: {size} {name}");
-                tree.insert(name.to_string(), DirectoryEntry::File(size.parse().unwrap()));
-            }
+        let words = line.split(" ").collect_vec();
+        match words.as_slice() {
+            &["$", "cd", ".."] => break,
+            &["$", "ls"] => continue,
+            &["$", "cd", "/"] => continue,
+            &["$", "cd", name] => { tree.insert(name.to_string(), parse_inner(input)); },
+            &["dir", _] => {},
+            &[size, name] => { tree.insert(name.to_string(), DirectoryEntry::File(size.parse().unwrap())); },
+            l @ _ => panic!("unknown line format {l:?}"),
         }
     }
 
