@@ -11,12 +11,16 @@ macro_rules! reparse {
                     .expect("Regex did not compile")
             });
 
-            let ca = REGEX
-                .captures($string)
-                .expect("Regex did not match");
+            let ca;
+            let mut iter;
 
-            let mut iter = ca.iter();
-            iter.next();
+            if let Some(c) = REGEX.captures($string) {
+                ca = c;
+                iter = ca.iter();
+                iter.next();
+            } else {
+                panic!("Regex \"{}\" did not match string \"{}\"", $regex, $string);
+            }
 
             (
                 $(iter
