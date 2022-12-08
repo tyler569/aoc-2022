@@ -1,11 +1,12 @@
-use std::{fs, path::Path, env};
+use std::{fs, env};
 
 pub mod parser;
 mod regexparser;
 
 pub fn get_input(year: usize, day: usize) -> anyhow::Result<String> {
-    let cache_file_name = format!("cache/{}/{}", year, day);
-    let cache_file = Path::new(&cache_file_name);
+    let cache_file_name = format!(".cache/aoc/{}/{}", year, day);
+    let mut cache_file = home::home_dir().unwrap();
+    cache_file.push(cache_file_name);
 
     if cache_file.exists() {
         let content = fs::read_to_string(cache_file)?;
