@@ -9,11 +9,13 @@ fn main() -> anyhow::Result<()> {
     move 1 from 1 to 2";
     */
 
+    #[allow(unused)]
     let sample_piles = vec![
         vec!['Z', 'N'],
         vec!['M', 'C', 'D'],
         vec!['P'],
     ];
+    
 
     let my_piles = vec![
         vec!['D', 'T', 'W', 'F', 'J', 'S', 'H', 'N'],

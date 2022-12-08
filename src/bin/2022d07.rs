@@ -38,6 +38,7 @@ impl DirectoryEntry {
         }
     }
 
+    #[allow(unused)]
     fn prettyprint(&self, level: usize) {
         let empty = "";
         match self {
